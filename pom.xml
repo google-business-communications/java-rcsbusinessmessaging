@@ -92,6 +92,9 @@
             <goals>
               <goal>jar</goal>
             </goals>
+            <configuration>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -118,11 +121,11 @@
           <links>
             <link>http://docs.oracle.com/javase/7/docs/api</link>
           
-            <link>http://javadoc.google-http-java-client.googlecode.com/hg/1.25.0</link>
+            <link>http://javadoc.google-http-java-client.googlecode.com/hg/1.25.0-SNAPSHOT</link>
           
-            <link>http://javadoc.google-oauth-java-client.googlecode.com/hg/1.25.0</link>
+            <link>http://javadoc.google-oauth-java-client.googlecode.com/hg/1.25.0-SNAPSHOT</link>
           
-            <link>http://javadoc.google-api-java-client.googlecode.com/hg/1.25.0</link>
+            <link>http://javadoc.google-api-java-client.googlecode.com/hg/1.25.0-SNAPSHOT</link>
           </links>
         </configuration>
       </plugin>
