@@ -57,24 +57,27 @@ public class RbmApiHelper {
 
     public RbmApiHelper() { }
 
-    public RbmApiHelper(String credentialsFileLocation) {
-        initCredentials(credentialsFileLocation);
+    /**
+     * Initializes credentials and the RBM API object.
+     * @param serviceAccountKeyFile A file with the service account key information.
+     */
+    public RbmApiHelper(File serviceAccountKeyFile) {
+        initCredentials(serviceAccountKeyFile);
         initRbmApi();
     }
 
     /**
      * Initializes credentials used by the RBM API.
-     * @param credentialsFileLocation The location for the GCP service account file.
+     * @param serviceAccountKeyFile A file with the service account key information.
      */
-    private void initCredentials(String credentialsFileLocation) {
+    private void initCredentials(File serviceAccountKeyFile) {
         logger.info("Initializing credentials for RBM.");
 
         try {
             ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource(credentialsFileLocation).getFile());
 
             this.credential = GoogleCredential
-                    .fromStream(new FileInputStream(file));
+                    .fromStream(new FileInputStream(serviceAccountKeyFile));
 
             this.credential = credential.createScoped(Arrays.asList(
                     "https://www.googleapis.com/auth/rcsbusinessmessaging"));
