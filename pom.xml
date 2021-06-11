@@ -8,8 +8,8 @@
 
   <groupId>com.google.apis</groupId>
   <artifactId>google-api-services-rcsbusinessmessaging</artifactId>
-  <version>1.25.1</version>
-  <name>RCS Business Messaging API 1.25.1</name>
+  <version>1.25.2</version>
+  <name>RCS Business Messaging API 1.25.2</name>
   <packaging>jar</packaging>
   <url>https://developers.google.com/business-communications/rcs-business-messaging</url>
   <description>Java library for Google's RCS Business Messaging API</description>

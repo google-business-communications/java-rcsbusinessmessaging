@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-   compile group: 'com.google.apis', name: 'google-api-services-rcsbusinessmessaging', version: '1.25.1'
+   compile group: 'com.google.apis', name: 'google-api-services-rcsbusinessmessaging', version: '1.25.2'
 }
 ```
 
@@ -40,7 +40,7 @@ If using maven, add the following to your pom.xml file.
 <dependency>
   <groupId>com.google.apis</groupId>
   <artifactId>google-api-services-rcsbusinessmessaging</artifactId>
-  <version>1.25.1</version>
+  <version>1.25.2</version>
 </dependency>
 ```
 

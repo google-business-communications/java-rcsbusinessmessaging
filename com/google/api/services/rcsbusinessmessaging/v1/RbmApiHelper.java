@@ -133,6 +133,25 @@ public class RbmApiHelper {
     }
 
     /**
+     * Performs a batch user capability check. The API supports a maximum of 10,000
+     * users per request.
+     *
+     * @param phoneNumbers List of user phone numbers to check.
+     * @return A BatchGetUsersResponse object.
+     * @throws Exception
+     */
+    public BatchGetUsersResponse getUsers(List<String> phoneNumbers) throws Exception {
+        RCSBusinessMessaging.Users.BatchGet batchGetRequest = builder.build().users()
+            .batchGet(new BatchGetUsersRequest().setUsers(phoneNumbers));
+
+        HttpRequest request = ((AbstractGoogleClientRequest) batchGetRequest).buildHttpRequest();
+        request.setUnsuccessfulResponseHandler(
+            new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
+
+        return batchGetRequest.execute();
+    }
+
+    /**
      * Checks whether the device associated with the phone number is RCS enabled.
      * This uses the asynchronous capability check API.
      * @param msisdn The phone number in E.164 format.
