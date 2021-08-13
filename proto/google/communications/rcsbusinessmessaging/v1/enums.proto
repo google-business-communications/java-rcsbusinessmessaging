@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package google.communications.rcsbusinessmessaging.v1;
+
+option csharp_namespace = "Google.Communications.Rcsbusinessmessaging.V1";
+option java_multiple_files = true;
+option java_outer_classname = "EnumsProto";
+option java_package = "com.google.communications.rcsbusinessmessaging.v1";
+option objc_class_prefix = "GCRBM";
+
+// Broad categories of a file
+enum FileCategory {
+  // Not specified.
+  FILE_CATEGORY_UNSPECIFIED = 0;
+  // Image file (for example, png or gif).
+  IMAGE = 1;
+  // Video file (for example, mp4).
+  VIDEO = 2;
+  // Audio file (for example, mp3).
+  AUDIO = 3;
+}
+
+// Types of RBM features that the user supports.
+enum Feature {
+  // Not specified.
+  FEATURE_UNSPECIFIED = 0;
+
+  // Revocation. If the user supports revocation, the agent can revoke
+  // a message it sent before the RBM platform delivers the message.
+  REVOCATION = 1;
+
+  // (--GOOGLE_INTERNAL: TODO(piyushsingal): Give reference to which methods
+  // can be called for each feature --)
+  // Standalone rich cards.
+  RICHCARD_STANDALONE = 2;
+
+  // Carousel of rich cards.
+  RICHCARD_CAROUSEL = 3;
+
+  // Suggested action to create a calendar event.
+  ACTION_CREATE_CALENDAR_EVENT = 4;
+
+  // Suggested action to dial a number.
+  ACTION_DIAL = 5;
+
+  // Suggested action to open a URL.
+  ACTION_OPEN_URL = 6;
+
+  // Suggested action to share a location.
+  ACTION_SHARE_LOCATION = 7;
+
+  // Suggested action to view a location in a map app.
+  ACTION_VIEW_LOCATION = 8;
+}

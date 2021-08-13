@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package google.communications.rcsbusinessmessaging.v1.richcards;
+
+import "google/communications/rcsbusinessmessaging/v1/content.proto";
+
+option csharp_namespace = "Google.Communications.Rcsbusinessmessaging.V1.Richcards";
+option java_multiple_files = true;
+option java_outer_classname = "GeneralPurposeCardProto";
+option java_package = "com.google.communications.rcsbusinessmessaging.v1.richcards";
+option objc_class_prefix = "RBMGP";
+
+// Common objects for standalone and carousel cards.
+
+// A media file within a rich card.
+message Media {
+  // Media content
+  oneof content {
+    // The unique name of the file, returned by the RBM platform when the file
+    // was uploaded.
+    string file_name = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+    // Information about a file, including the URL of the file and the URL of
+    // the file’s thumbnail.
+    //
+    // The RBM platform serves content from a cache, but an agent can force the
+    // RBM platform to fetch a new version of the content and refresh the cache.
+    ContentInfo content_info = 3;
+  }
+
+  // Media height
+  enum Height {
+    // Not specified.
+    HEIGHT_UNSPECIFIED = 0;
+
+    // 112 DP.
+    SHORT = 1;
+
+    // 168 DP.
+    MEDIUM = 2;
+
+    // 264 DP. Not available for rich card carousels when the card width is
+    // set to small.
+    TALL = 3;
+  }
+
+  // The height of the media within a rich card with a vertical layout.
+  // For a standalone card with
+  // horizontal layout, height is not customizable, and this field is
+  // ignored.
+  Height height = 2;
+}
+
+// Card content
+message CardContent {
+  // (Optional) Title of the card. Maximum 200 characters.
+  string title = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // (Optional) Description of the card. Maximum 2000 characters.
+  string description = 2 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // (Optional) Media (image, GIF, video) to include in the card.
+  Media media = 3;
+
+  // (Optional) List of suggestions to include in the card. Maximum
+  // 4 suggestions.
+  repeated google.communications.rcsbusinessmessaging.v1.Suggestion
+      suggestions = 4;
+}
+
+// Standalone card
+message StandaloneCard {
+  // Orientation of the card.
+  enum CardOrientation {
+    // Not specified.
+    CARD_ORIENTATION_UNSPECIFIED = 0;
+
+    // Horizontal layout.
+    //
+    // If a horizontal rich card's `object(`[`CardContent`](#CardContent)`)`
+    // contains the **`media`** field, it must also include at least a
+    // `title`, `description`, or  `suggestions[]` field.
+    HORIZONTAL = 1;
+
+    // Vertical layout.
+    VERTICAL = 2;
+  }
+
+  // Orientation of the card.
+  CardOrientation card_orientation = 1;
+
+  // Image preview alignment for standalone cards with horizontal layout.
+  enum ThumbnailImageAlignment {
+    // Not specified.
+    THUMBNAIL_IMAGE_ALIGNMENT_UNSPECIFIED = 0;
+
+    // File preview is left-aligned.
+    LEFT = 1;
+
+    // File preview is right-aligned.
+    RIGHT = 2;
+  }
+
+  // Image preview alignment for standalone cards with horizontal layout.
+  ThumbnailImageAlignment thumbnail_image_alignment = 2;
+
+  // Card content.
+  CardContent card_content = 3;
+}
+
+// Carousel of cards.
+message CarouselCard {
+  // The width of the cards in the carousel.
+  enum CardWidth {
+    // Not specified.
+    CARD_WIDTH_UNSPECIFIED = 0;
+
+    // 120 DP. Note that tall media cannot be used.
+    SMALL = 1;
+
+    // 232 DP.
+    MEDIUM = 2;
+  }
+
+  // The width of the cards in the carousel.
+  CardWidth card_width = 1;
+
+  // The list of contents for each card in the carousel. A carousel can have a
+  // minimum of 2 cards and a maximum 10 cards.
+  repeated CardContent card_contents = 2;
+}

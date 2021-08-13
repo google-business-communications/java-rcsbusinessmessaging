@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package google.communications.rcsbusinessmessaging.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/type/latlng.proto";
+import "storage/datapol/annotations/proto/semantic_annotations.proto";
+
+option csharp_namespace = "Google.Communications.Rcsbusinessmessaging.V1";
+option java_multiple_files = true;
+option java_outer_classname = "ContentProto";
+option java_package = "com.google.communications.rcsbusinessmessaging.v1";
+option objc_class_prefix = "GCRBM";
+
+// A file resource with a unique name that an agent can use to identify the file
+// when sending messages.
+message File {
+  // Server-assigned unique name of the file resource, which an agent can use to
+  // identify the file when sending messages. The format is
+  // "files/{uid}", where {uid} is a unique ID.
+  string name = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+}
+
+// A suggested reply or a suggested action included within a rich card
+// or within a suggestion chip list.
+message Suggestion {
+  // A suggested reply or a suggested action
+  oneof option {
+    // Users can tap a suggested reply to send the text reply back to the
+    // agent.
+    SuggestedReply reply = 1;
+
+    // Users can tap a suggested action to initiate the corresponding native
+    // action on the device.
+    SuggestedAction action = 2;
+  }
+}
+
+// When tapped, sends the text reply back to the agent.
+message SuggestedReply {
+  // Text that is shown in the suggested reply and sent back to the
+  // agent when the user taps it. Maximum 25 characters.
+  string text = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // The base64-encoded payload that the agent receives in a user event
+  // when the user taps the suggested reply.
+  string postback_data = 2 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+}
+
+// When tapped, initiates the corresponding native action on the device.
+message SuggestedAction {
+  // Text that is shown in the suggested action. Maximum 25 characters.
+  string text = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // Payload (base64 encoded) that will be sent to the agent in the user event
+  // that results when the user taps the suggested action
+  string postback_data = 2 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // The native action initiated on the device when the user taps the
+  // suggested action
+  oneof action {
+    // Opens the user's default dialer app with the agent-specified phone number
+    // filled in.
+    DialAction dial_action = 3;
+
+    // Opens the user's default map app and selects the agent-specified
+    // location or searches around the user's location given an agent-specified
+    // query.
+    ViewLocationAction view_location_action = 4;
+
+    // Opens the user's default calendar app and starts the new calendar event
+    // flow with the agent-specified event data pre-filled.
+    CreateCalendarEventAction create_calendar_event_action = 5;
+
+    // Opens the user's default web browser app to the given URL. If the user
+    // has an app installed that is registered as the default handler for the
+    // URL, then this app will be opened instead, and its icon will be used
+    // in the suggested action UI.
+    OpenUrlAction open_url_action = 6;
+
+    // Opens the RCS app's location chooser so the user can pick a location
+    // to send to the agent.
+    ShareLocationAction share_location_action = 7;
+  }
+
+  // (Optional) Fallback URL to use if a client doesn't support a suggested
+  // action. Fallback URLs open in new browser windows.
+  string fallback_url = 9;
+}
+
+// Opens the user's default dialer app with the agent-specified phone number
+// filled in.
+message DialAction {
+  // The phone number in E.164 format, for example, +12223334444.
+  string phone_number = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+}
+
+// Opens the user's default map app and selects the agent-specified
+// location or searches around the user's location given an agent-specified
+// query.
+message ViewLocationAction {
+  // (Optional) The latitude and longitude of the specified location.
+  google.type.LatLng lat_long = 1 [(datapol.semantic_type) = ST_LOCATION];
+
+  // (Optional) The label of the pin dropped at lat_long.
+  string label = 2 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // (Optional, only supported on Android Messages clients) Rather than specify
+  // a lat_long (and optionally, a label), the agent can instead specify a query
+  // string. For default map apps that support search functionality (including
+  // Google Maps), tapping this suggested action results in a location
+  // search centered around the user's current location. If the query is
+  // sufficiently specific, then agents can use it to select any location in the
+  // world.
+  //
+  // For instance, setting the query string to "Growing Tree Bank" will show all
+  // Growing Tree Bank locations in the user's vicinity. Setting the query
+  // string to "1600 Amphitheater Parkway, Mountain View, CA 94043" will
+  // select that specific address, regardless of the user's location.
+  string query = 3 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+}
+
+// Opens the user's default calendar app and starts the new calendar event
+// flow with the agent-specified event data pre-filled.
+message CreateCalendarEventAction {
+  // Event start time.
+  google.protobuf.Timestamp start_time = 1
+      [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // Event end time.
+  google.protobuf.Timestamp end_time = 2
+      [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // Event title.
+  string title = 3 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // Event description.
+  string description = 4 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+}
+
+// Opens the user's default web browser app to the specified URL. If the user
+// has an app installed that is registered as the default handler for the
+// URL, then this app will be opened instead, and its icon will be used
+// in the suggested action UI.
+message OpenUrlAction {
+  // URL
+  string url = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+}
+
+// Opens the RCS app's location chooser so the user can pick a location
+// to send back to the agent.
+message ShareLocationAction {}
+
+// Message containing the content information.
+message ContentInfo {
+  // Publicly reachable URL of the file. The RBM platform determines the MIME
+  // type of the file from the content-type field in the HTTP headers when the
+  // platform fetches the file. The content-type field must be present and
+  // accurate in the HTTP response from the URL. Recommended maximum file size
+  // of 100 MB.
+  string file_url = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // (Optional, for image and video files only) Publicly reachable URL of the
+  // thumbnail. Maximum size of 100 kB.
+  //
+  // If you don't provide a thumbnail URL, the RBM platform displays a blank
+  // placeholder thumbnail until the user's device downloads the file. Depending
+  // on the user's setting, the file may not download automatically and may
+  // require the user to tap a download button.
+  string thumbnail_url = 2 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // If set, the RBM platform fetches the file and thumbnail from the specified
+  // URLs, even if the platform has cached copies of the file (and/or of the
+  // thumbnail).
+  bool force_refresh = 3;
+}

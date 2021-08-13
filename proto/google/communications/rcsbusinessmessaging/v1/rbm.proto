@@ -1,0 +1,557 @@
+syntax = "proto3";
+
+package google.communications.rcsbusinessmessaging.v1;
+
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/visibility.proto";
+import "google/communications/rcsbusinessmessaging/v1/content.proto";
+import "google/communications/rcsbusinessmessaging/v1/enums.proto";
+import "google/communications/rcsbusinessmessaging/v1/richcards/richcard.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Google.Communications.Rcsbusinessmessaging.V1";
+option java_multiple_files = true;
+option java_outer_classname = "RbmProto";
+option java_package = "com.google.communications.rcsbusinessmessaging.v1";
+option objc_class_prefix = "GCRBM";
+
+// This API allows developers to build agents that can send messages to users
+// via RCS client applications and receive responses. Agents can construct
+// messages with rich features—such as general purpose cards, card carousels,
+// and suggested replies/actions—to engage with their users over RCS. Agents can
+// begin a conversation with an RCS user by sending a message to her phone
+// number, provided the user has previously opted in to being contacted by the
+// agent via carrier messaging. Further, Agents can also send and receive
+// delivery notifications using this API for messages received and sent
+// respectively.
+//
+// Allows 3rd party Agents to send messages to API, which relay them to
+// users through RCS protocol.
+// Moreover, Agents can query API for capabilities of a RCS messaging
+// app, and revoke an already sent message.
+//
+// Core concepts:
+//  - RCS (Rich Communication Services): A telecom carrier protocol that extends
+//    SMS protocol by adding richer contents and behaviors.
+//  - RCS Client: a RCS messaging application that a human user interacts with.
+//  - User: a human user who interacts with an RCS messaging app.
+//  - Agent: a program designed to converse with human users.
+//  - Capability: what kinds of data a RCS messaging app can send and receive.
+service RcsBusinessMessagingService {
+  // Sends a message from the agent to a user.
+  //
+  // The user must be RCS enabled and reachable by the RBM platform in order for
+  // the agent to successfully send a message. When the message has been
+  // successfully sent, the call returns with no error. Otherwise, the agent
+  // receives an error code.
+  //
+  // If the user is online, the RBM platform delivers the message right away.
+  // Otherwise, the RBM platform queues the message and delivered it when the
+  // user is next online.
+  //
+  // The RBM platform ignores any agent message sent with an ID that was used by
+  // an earlier message or event sent from the same agent.
+  //
+  // Agent messages can be revoked between the time that they are sent and the
+  // time that they are delivered.
+  rpc CreateAgentMessage(CreateAgentMessageRequest) returns (AgentMessage) {
+    option (google.api.http) = {
+      post: "/v1/{parent=phones/*}/agentMessages"
+      body: "agent_message"
+    };
+  }
+
+  // Sends an event from the agent to a user.
+  //
+  // Agent events can be used to indicate that the agent has read a message from
+  // the user or that the agent is in the process of typing (which adds a human
+  // element to the RBM experience). If RBM can't reach the user, the RBM
+  // platform returns `404 NOT_FOUND`.
+  //
+  // Unlike agent messages, agent events cannot be revoked after sending.
+  rpc CreateAgentEvent(CreateAgentEventRequest) returns (AgentEvent) {
+    option (google.api.http) = {
+      post: "/v1/{parent=phones/*}/agentEvents"
+      body: "agent_event"
+    };
+  }
+
+  // Prompts a <a class="external" href="https://dialogflow.com">Dialogflow</a>
+  // agent to send messages through an RBM agent.
+  //
+  // If Dialogflow integration isn't enabled for an RBM agent, this method
+  // returns `403 PERMISSION_DENIED`.
+  //
+  // When an RBM agent is integrated with a Dialogflow agent, this method
+  // triggers an
+  // <a class="external" href="https://dialogflow.com/docs/events">event</a> in
+  // the Dialogflow agent. The RBM Platform routes responses from Dialogflow to
+  // the user's device and routes messages from the user back to the Dialogflow
+  // agent.
+  //
+  // If a Dialogflow
+  // <a class="external" href="https://dialogflow.com/docs/intents">intent</a>
+  // defines multiple responses, the RBM Platform sends users one message per
+  // defined response.
+  //
+  // If you contact a webhook with Dialogflow
+  // <a class="external"
+  // href="https://dialogflow.com/docs/fulfillment">fulfillment</a>, the
+  // fulfillment request includes the following information in the payload:
+  //
+  // <table>
+  //   <tr>
+  //     <th>Field</th>
+  //     <th>Description</th>
+  //   </tr>
+  //   <tr>
+  //     <td><code>rbm_user_phone_number</code></td>
+  //     <td>The user's phone number.</td>
+  //   </tr>
+  //   <tr>
+  //     <td><code>rbm_share_location_response</code></td>
+  //     <td>The user's location, if they tapped the share location suggested
+  //         action.</td>
+  //   </tr>
+  // </table>
+  //
+  rpc CreateDialogflowEvent(CreateDialogflowEventRequest)
+      returns (DialogflowEvent) {
+    option (google.api.http) = {
+      post: "/v1/{parent=phones/*}/dialogflowMessages"
+      body: "dialogflow_message"
+    };
+  }
+
+  // Revokes an agent message that has been sent but not yet delivered.
+  //
+  // If the RBM platform successfully revokes a message, then the message is
+  // deleted from the user’s message queue and is never delivered.
+  //
+  // This method immediately returns 200 OK, whether or not the message was
+  // successfully revoked.
+  //
+  // There is a small chance that the agent may initiate a revocation while the
+  // RBM platform is in the process of delivering the message.
+  // In these rare cases, the agent receives a DELIVERED user event for the
+  // message shortly after initiating the revocation request.
+  rpc DeleteAgentMessage(DeleteAgentMessageRequest)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/{name=phones/*/agentMessages/*}"
+    };
+  }
+
+  // Requests a callback containing the capabilities of a user.
+  //
+  // Following this request, the agent receives an asynchronous callback
+  // with the user's capabilities.
+  rpc RequestCapabilityCallback(RequestCapabilityCallbackRequest)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/{name=phones/*}/capability:requestCapabilityCallback"
+      body: "*"
+    };
+  }
+
+  // Uploads a file for use in media or rich card messages.
+  //
+  // The agent provides the URL or binary of the file and (optionally) the URL
+  // of the corresponding thumbnail file. The RBM platform caches the file for
+  // 60 days and returns a unique name that you can use to identify the file
+  // when sending agent messages.
+  //
+  // To upload a file binary, make an HTTP POST request to the Upload URI, omit
+  // the `fileUrl` field from the JSON request body, and specify the binary as
+  // the POST request body. For example, use the `--upload-file` cURL flag with
+  // the fully qualified file path of the binary file.
+  rpc CreateFile(CreateFileRequest) returns (File) {
+    option (google.api.http) = {
+      post: "/v1/files"
+      rest_collection: "files"
+      rest_method_name: "create"
+      media_upload {
+        upload_service: "scotty.googleapis.com",
+        enabled: true,
+        start_notification: true,
+        progress_notification: false,
+        complete_notification: true
+      }
+      body: "*"
+    };
+  }
+
+  // Invites a user to test an agent.
+  //
+  // The invited user must be RCS-enabled and reachable by the RBM platform.
+  // When an agent invites a user to become a tester, an RBM platform management
+  // agent sends a message to the user asking for confirmation that she
+  // wants to be a tester of the agent. Once the user confirms, she becomes
+  // a tester.
+  //
+  // An agent that has not yet launched can only interact with
+  // users who are testers of that agent. If an unlaunched agent attempts to
+  // send a message, event, or capability callback to a non-tester,
+  // the RBM platform returns a `403 PERMISSION_DENIED` error.
+  //
+  // An agent can send 20 tester requests each day with a total maximum of 200
+  // tester requests. If you send tester requests above those limits, the RBM
+  // platform returns a `429 RESOURCE_EXHAUSTED` response.
+  rpc CreateTester(CreateTesterRequest) returns (Tester) {
+    option (google.api.http) = {
+      post: "/v1/{parent=phones/*}/testers"
+      body: "tester"
+    };
+  }
+
+  // Get the RBM-related capabilities of a user.
+  //
+  // The returned payload specifies whether a user can be reached with RBM
+  // and, if so, which RBM features the user supports. If the user can't be
+  // reached with RBM, the RBM platform returns `404 NOT_FOUND`.
+  //
+  // An agent that isn't launched can only request capabilities for users who
+  // are testers of that agent. If an unlaunched agent requests the capabilities
+  // of a non-tester, the RBM platform returns `403 PERMISSION_DENIED`.
+  rpc GetCapabilities(GetCapabilitiesRequest) returns (Capabilities) {
+    option (google.api.http) = {
+      get: "/v1/{name=phones/*}/capabilities"
+    };
+  }
+
+  // Gets the RCS-enabled phone numbers for a list of users.
+  //
+  // The returned payload contains a list of RCS-enabled phone numbers reachable
+  // by the RBM platform for the specified users. Only phone numbers that are
+  // RCS-enabled for a carrier the agent is launched on will be returned.
+  //
+  // The returned payload also contains values that can be used to estimate the
+  // potential reach of a list of phone numbers regardless of the launch status
+  // of the agent.
+  //
+  // Maximum 600 queries per minute (QPM).
+  // (-- aip.dev/not-precedent: Recommended BatchGet method using HTTP GET
+  //     doesn't support requests with over 370 phone numbers. The current API
+  //     supports up to 10.000 records. --)
+  rpc BatchGetUsers(BatchGetUsersRequest) returns (BatchGetUsersResponse) {
+    option security_level = PRIVACY_AND_INTEGRITY;
+    option (google.api.http) = {
+      post: "/v1/users:batchGet"
+      body: "*"
+    };
+  }
+}
+
+// Request message for RBM.CreateAgentMessage method.
+message CreateAgentMessageRequest {
+  // "phones/{E.164}", where {E.164} is the user's phone number in E.164 format.
+  // For example, with the US phone number +1-222-333-4444, the value would be
+  // phones/+12223334444, and the resulting endpoint would be
+  // https://rcsbusinessmessaging.googleapis.com/v1/phones/+12223334444/agentMessages.
+  string parent = 1;
+
+  // The unique ID of the message, assigned by the agent. This must be a UUID,
+  // as defined in https://tools.ietf.org/html/rfc4122. The RBM platform ignores
+  // any agent message sent with an ID that was used by
+  // an earlier message or event sent from the same agent.
+  string message_id = 2;
+
+  // Agent message.
+  AgentMessage agent_message = 3;
+
+  // The agent's unique identifier. Defined by RCS Business Messaging.
+  string agent_id = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.field_visibility).restriction = "GOOGLE_INTERNAL"
+  ];
+}
+
+// Request message for RBM.NotifyUserEvent method.
+message CreateAgentEventRequest {
+  // "phones/{E.164}", where {E.164} is the user's phone number in E.164 format.
+  // For example, for a user with the US phone number +1-222-333-4444, the
+  // value would be phones/+12223334444, and the resulting endpoint would be
+  // https://rcsbusinessmessaging.googleapis.com/v1/phones/+12223334444/agentEvents.
+  string parent = 1;
+
+  // The ID of the event, assigned by the agent. This must be a UUID, as
+  // defined in https://tools.ietf.org/html/rfc4122. The RBM platform ignores
+  // any agent message sent with an ID that was used by
+  // an earlier message or event sent from the same agent.
+  string event_id = 2;
+
+  // Agent event
+  AgentEvent agent_event = 3;
+}
+
+// Request for creating file.
+message CreateFileRequest {
+  // Optional. Publicly available URL of the file. The RBM platform determines
+  // the MIME type of the file from the content-type field in the HTTP headers
+  // when fetching the file.
+  //
+  // Supported image content types: image/jpeg, image/jpg, image/gif, image/png.
+  //
+  // Supported video content types: video/h263, video/m4v, video/mp4,
+  // video/mpeg, video/mpeg4, video/webm.
+  string file_url = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // Optional. Publicly available URL of the thumbnail corresponding to the
+  // file. If this field is not set, then the RBM platform automatically
+  // generates a thumbnail from the file. The RBM platform determines the MIME
+  // type of the file from the content-type field in the HTTP headers when
+  // fetching the file.
+  //
+  // Supported image content types: image/jpeg, image/jpg, image/gif, image/png.
+  string thumbnail_url = 2 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // Optional. Text description of the file's content. Screen readers use this
+  // description to help users with disabilities understand what the file
+  // contains.
+  string content_description = 3 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+}
+
+// Request message for RBMService.DeleteAgentMessage method.
+message DeleteAgentMessageRequest {
+  // "phones/{E.164}/agentMessages/{messageId}", where {E.164} is the
+  // user's phone number in E.164 format and {messageId} is the agent-assigned
+  // ID of the agent message that should be revoked. For example, with the US
+  // phone number +1-222-333-4444 and an agent message with the ID "12345xyz",
+  // the resulting endpoint would be
+  // https://rcsbusinessmessaging.googleapis.com/v1/phones/+12223334444/agentMessages/12345xyz.
+  string name = 1;
+}
+
+// Request message for RBMService.RequestCapabilityCallback method.
+message RequestCapabilityCallbackRequest {
+  // "phones/{E.164}/capability", where {E.164} is the user's phone number
+  // in E.164 format. For example, with the US phone number +1-222-333-4444,
+  // the resulting endpoint would be
+  // https://rcsbusinessmessaging.googleapis.com/v1/phones/+12223334444/capability:requestCapabilityCallback
+  string name = 1;
+
+  // The ID of the request, assigned by the agent. This must be a UUID, as
+  // defined in https://tools.ietf.org/html/rfc4122. This request ID is included
+  // in the capability callback, which returns asynchronously.
+  string request_id = 2;
+}
+
+// Request message for RBM.CreateDialogflowEventRequest method.
+message CreateDialogflowEventRequest {
+  // "phones/{E.164}", where {E.164} is the user's phone number
+  string parent = 1;
+
+  // A unique prefix of RBM message IDs that result from the Dialogflow event.
+  // Dialogflow supports multiple responses for a given event. If an event
+  // triggers multiple responses, RBM forwards each response as a separate
+  // message. Each message ID shares the same prefix.
+  string message_id_prefix = 2;
+
+  // message.
+  DialogflowEvent dialogflow_message = 3;
+}
+
+// A message sent from the agent to a user.
+message AgentMessage {
+  // This field is set by the RBM platform. Do not include it when creating
+  // an agent message. The field resolves
+  // "phones/{E.164}/agentMessages/{messageId}", where {E.164} is the
+  // user's phone number in E.164 format and {messageId} is the agent-assigned
+  // ID of the agent message.
+  string name = 1;
+
+  // This field is set by the RBM platform. Do not include it when creating
+  // an agent message. The field resolves the time when the message is
+  // sent to the user.
+  google.protobuf.Timestamp send_time = 2;
+
+  // The content of the agent message.
+  AgentContentMessage content_message = 3;
+}
+
+// The content of a message sent from the agent to a user.
+message AgentContentMessage {
+  // The content of the agent message
+  oneof content {
+    // Text encoded in UTF-8.
+    string text = 1 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+    // The unique name of a file. The RBM platform returns a file name when an
+    // agent uploads a file.
+    string file_name = 2 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+    // A standalone rich card.
+    google.communications.rcsbusinessmessaging.v1.richcards.RichCard rich_card =
+        3;
+
+    // Information about a file, including the URL of the file and the URL of
+    // the file’s thumbnail.
+    //
+    // The RBM platform serves content from a cache, but an agent can force the
+    // RBM platform to fetch a new version of the content and refresh the cache.
+    ContentInfo content_info = 5;
+  }
+
+  // A list of suggested replies and suggested actions that appear as a list of
+  // suggestion chips following the associated agent message. Maximum 11
+  // suggestions.
+  //
+  // The chips only display when the associated agent message is the most recent
+  // message within the conversation (including both agent and user messages).
+  // The user can tap a suggested reply to send the text reply back to the
+  // agent or tap a suggested action to initiate a native action on the device.
+  repeated Suggestion suggestions = 4;
+}
+
+// An event from the agent to the user.
+message AgentEvent {
+  // This field is set by the RBM platform. Do not include it when creating
+  // an agent event. The field resolves
+  // "phones/{E.164}/agentEvents/{eventId}", where {E.164} is the user's phone
+  // number in E.164 format and {eventId} is the agent-assigned ID of the agent
+  // event.
+  string name = 1;
+
+  // Type of an agent event.
+  enum EventType {
+    TYPE_UNSPECIFIED = 0;  // Not specified.
+    IS_TYPING = 1;         // The agent is typing.
+    READ = 2;  // The message sent by a user has been read by the agent.
+  }
+
+  // The type of the agent event.
+  EventType event_type = 2;
+
+  // The ID of the user message that the agent event pertains to. This field is
+  // only applicable for agent events of type READ.
+  string message_id = 3;
+
+  // This field is set by the RBM platform. Do not include it when creating
+  // an agent message. The field resolves the time when the event is
+  // sent to the user.
+  google.protobuf.Timestamp send_time = 4;
+}
+
+// Request message for RBMService.CreateTester method.
+message CreateTesterRequest {
+  // "phones/{E.164}", where {E.164} is the user's phone number
+  // in E.164 format. For example, with the US phone number +1-222-333-4444, the
+  // resulting endpoint would be
+  // https://rcsbusinessmessaging.googleapis.com/v1/phones/+12223334444/testers/.
+  string parent = 1;
+
+  // The content of the tester object.
+  Tester tester = 2;
+}
+
+// A tester for the agent. The agent can interact with verified testers even if
+// the agent has not yet launched.
+message Tester {
+  // This field is set by the RBM platform. Do not include it when creating
+  // a tester object. The field resolves "phones/{E.164}/testers", where {E.164}
+  // is the tester's phone number in E.164 format.
+  string name = 1;
+
+  // Type of an invitation
+  enum InviteStatus {
+    INVITE_STATUS_UNSPECIFIED = 0;  // Not specified.
+    PENDING = 1;   // The user has not responded to the invite yet.
+    ACCEPTED = 2;  // The user accepted the invitation to become a tester.
+    DECLINED = 3;  // The user declined the invitation to become a tester.
+  }
+
+  // The status of the invitation.
+  InviteStatus invite_status = 2;
+}
+
+// The RBM capabilities of a user.
+message GetCapabilitiesRequest {
+  // This field resolves to "phones/{E.164}/capabilities", where {E.164} is the
+  // user's phone number in E.164 format. For example, for a user with the US
+  // phone number +1-222-333-4444, the resulting endpoint is
+  // https://rcsbusinessmessaging.googleapis.com/v1/phones/+12223334444/capabilities.
+  string name = 1;
+
+  // The unique ID of the request, assigned by the agent. This must be a UUID,
+  // as defined in https://tools.ietf.org/html/rfc4122. If the request ID
+  // matches an ID that the agent used for a previous request, the RBM platform
+  // ignores the new request.
+  string request_id = 2;
+}
+
+// List of supported features by the user
+message Capabilities {
+  // List of RBM features that this device supports.
+  repeated Feature features = 2;
+}
+
+// Dialogflow event triggered by the RBM Platform.
+//
+// With
+// <a class="external" href="https://dialogflow.com/docs/events">events</a>,
+// an agent can match an
+// <a class="external" href="https://dialogflow.com/docs/intents">intent</a>
+// without using language as an input.
+//
+// Parameters enable personalized responses. For example, with the input
+// `{ "eventName": "welcome_event", "parameters": { "name": "Sam" } }`, a
+// Dialogflow agent can create the response
+// `"Hello Sam! What can I do for you today?"`.
+message DialogflowEvent {
+  // This field is set by the RBM platform. Don't include it when creating
+  // an agent message. The field resolves
+  // "phones/{E.164}/dialogflowMessages/{messageId}", where {E.164} is the
+  // user's phone number in E.164 format and {messageId} is the agent-assigned
+  // ID of the RBM agent message.
+  string name = 1;
+
+  // The unique identifier of the event. For example,
+  // `RBM_WELCOME_EVENT`.
+  string event_name = 2;
+
+  // (Optional) Parameters associated with the event.
+  google.protobuf.Struct parameters = 3;
+
+  // The language of this query. For a list of language codes, see
+  // <a class="external" href="https://dialogflow.com/docs/languages">Language
+  // Support</a>. Before a Dialogflow agent can use a language, the language
+  // must be enabled in the
+  // <a class="external" href="https://console.dialogflow.com">Dialogflow
+  // console</a>.
+  //
+  // Queries in the same session can specify different languages. If a language
+  // isn't specified, Dialogflow uses the agent's default language.
+  // do not necessarily need to specify the same language.
+  string language_code = 4;
+}
+
+// Request to check if users are RBM-reachable.
+// (-- api-linter: core::0231::request-names-field=disabled
+//     aip.dev/not-precedent: root object, no name needed. --)
+// (-- api-linter: core::0231::request-parent-field=disabled
+//     aip.dev/not-precedent: root object, no name needed. --)
+message BatchGetUsersRequest {
+  // List of users' phone numbers in E.164 format.
+  repeated string users = 1;
+}
+
+// Response with RBM-reachability user data.
+message BatchGetUsersResponse {
+  // List of users' phone numbers that RBM can reach. Only includes users on
+  // carriers that the agent is launched on.
+  repeated string reachable_users = 1;
+
+  // Count of phone numbers randomly selected from [reachable_users] [].
+  // Typically, this value is ~75% of the total requested phone numbers. This
+  // value is `0` if the count of requested phone numbers is less than 500.
+  int32 total_random_sample_user_count = 2;
+
+  // Count of phone numbers from the randomly selected list that are
+  // RCS-reachable across all carriers, regardless of the agent's launch status.
+  // The ratio between this value and [total_random_sample_user_count] [] can
+  // approximate the potential reach for a list of users.
+  int32 reachable_random_sample_user_count = 3;
+}

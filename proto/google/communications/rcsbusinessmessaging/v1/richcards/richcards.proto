@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package google.communications.rcsbusinessmessaging.v1.richcards;
+
+import "google/communications/rcsbusinessmessaging/v1/richcards/general_purpose_card.proto";
+
+option csharp_namespace = "Google.Communications.Rcsbusinessmessaging.V1.Richcards";
+option java_multiple_files = true;
+option java_outer_classname = "RichcardProto";
+option java_package = "com.google.communications.rcsbusinessmessaging.v1.richcards";
+option objc_class_prefix = "RBMRC";
+
+// A standalone rich card or a carousel of rich cards sent from the agent to the
+// user.
+message RichCard {
+  // Standalone card or carousel of cards.
+  oneof card {
+    // Carousel of cards.
+    CarouselCard carousel_card = 1;
+
+    // Standalone card.
+    StandaloneCard standalone_card = 2;
+  }
+}
