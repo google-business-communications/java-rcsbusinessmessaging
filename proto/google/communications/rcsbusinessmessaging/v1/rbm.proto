@@ -264,8 +264,7 @@ message CreateAgentMessageRequest {
 
   // The agent's unique identifier. Defined by RCS Business Messaging.
   string agent_id = 4 [
-    (google.api.field_behavior) = OPTIONAL,
-    (google.api.field_visibility).restriction = "GOOGLE_INTERNAL"
+    (google.api.field_behavior) = OPTIONAL
   ];
 }
 
@@ -285,6 +284,11 @@ message CreateAgentEventRequest {
 
   // Agent event
   AgentEvent agent_event = 3;
+
+  // The agent's unique identifier. Defined by RCS Business Messaging.
+  string agent_id = 4 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // Request for creating file.
@@ -312,6 +316,17 @@ message CreateFileRequest {
   // description to help users with disabilities understand what the file
   // contains.
   string content_description = 3 [(datapol.semantic_type) = ST_PERSONAL_DATA];
+
+  // Blob file reference. This will be propagated by scotty agent automatically.
+  gdata.Media blob = 4 [
+    (datapol.semantic_type) = ST_USER_CONTENT,
+    (google.api.field_visibility).restriction = "GOOGLE_INTERNAL"
+  ];
+
+  // Media request info populated by Scotty server. This will be propagated by
+  // scotty agent automatically.
+  apiserving.MediaRequestInfo media_request_info = 5
+      [(google.api.field_visibility).restriction = "GOOGLE_INTERNAL"];
 }
 
 // Request message for RBMService.DeleteAgentMessage method.
@@ -323,6 +338,11 @@ message DeleteAgentMessageRequest {
   // the resulting endpoint would be
   // https://rcsbusinessmessaging.googleapis.com/v1/phones/+12223334444/agentMessages/12345xyz.
   string name = 1;
+
+  // The agent's unique identifier. Defined by RCS Business Messaging.
+  string agent_id = 2 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // Request message for RBMService.RequestCapabilityCallback method.
@@ -352,6 +372,11 @@ message CreateDialogflowEventRequest {
 
   // message.
   DialogflowEvent dialogflow_message = 3;
+
+  // The agent's unique identifier. Defined by RCS Business Messaging.
+  string agent_id = 4 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // A message sent from the agent to a user.
@@ -445,6 +470,11 @@ message CreateTesterRequest {
 
   // The content of the tester object.
   Tester tester = 2;
+
+  // The agent's unique identifier. Defined by RCS Business Messaging.
+  string agent_id = 4 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // A tester for the agent. The agent can interact with verified testers even if
@@ -480,6 +510,11 @@ message GetCapabilitiesRequest {
   // matches an ID that the agent used for a previous request, the RBM platform
   // ignores the new request.
   string request_id = 2;
+
+  // The agent's unique identifier. Defined by RCS Business Messaging.
+  string agent_id = 3 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // List of supported features by the user
@@ -536,6 +571,11 @@ message DialogflowEvent {
 message BatchGetUsersRequest {
   // List of users' phone numbers in E.164 format.
   repeated string users = 1;
+
+  // The agent's unique identifier. Defined by RCS Business Messaging.
+  string agent_id = 2 [
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // Response with RBM-reachability user data.
