@@ -36,6 +36,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
@@ -63,31 +64,46 @@ public class RbmApiHelper {
 
     /**
      * Initializes credentials and the RBM API object.
-     * @param serviceAccountKeyFile A file with the service account key information.
+     * @param serviceAccount An credential for the service account.
      */
-    public RbmApiHelper(File serviceAccountKeyFile) {
-        initCredentials(serviceAccountKeyFile);
+    public RbmApiHelper(GoogleCredential serviceAccount) {
+        initCredentials(serviceAccountKey);
         initRbmApi();
     }
 
     /**
-     * Initializes credentials used by the RBM API.
+     * Initializes credentials and the RBM API object.
+     * @param serviceAccountKey An open {@code InputStream} with the service account key information.
+     */
+    public RbmApiHelper(InputStream serviceAccountKey) throws IOException {
+        this(GoogleCredential.fromStream(serviceAccountKey));
+    }
+
+    /**
+     * Initializes credentials and the RBM API object.
      * @param serviceAccountKeyFile A file with the service account key information.
      */
-    private void initCredentials(File serviceAccountKeyFile) {
-        logger.info("Initializing credentials for RBM.");
-
-        try {
-            ClassLoader classLoader = getClass().getClassLoader();
-
-            this.credential = GoogleCredential
-                    .fromStream(new FileInputStream(serviceAccountKeyFile));
-
-            this.credential = credential.createScoped(Arrays.asList(
-                    "https://www.googleapis.com/auth/rcsbusinessmessaging"));
+    // This constructor should throw IOException, but it swallows the exception for backward compatibility.
+    public RbmApiHelper(File serviceAccountKeyFile) {
+        // This should delegate to RbmApiHelper(InputStream), but Java refuses to allow this() inside a try.
+        try (FileInputStream serviceAccountKey = new FileInputStream(serviceAccountKeyFile)) {
+            GoogleCredential serviceAccount = GoogleCredential.fromStream(serviceAccountKey)
+            initCredentials(serviceAccount);
+            initRbmApi();
         } catch(Exception e) {
             logger.log(Level.SEVERE, EXCEPTION_WAS_THROWN, e);
         }
+    }
+
+    /**
+     * Initializes credentials used by the RBM API.
+     * @param serviceAccountKey An open {@code InputStream} with the service account key information.
+     */
+    private void initCredentials(GoogleCredential serviceAccount) throws IOException {
+        logger.info("Initializing credentials for RBM.");
+
+        this.credential = serviceAccount.createScoped(Arrays.asList(
+                "https://www.googleapis.com/auth/rcsbusinessmessaging"));
     }
 
     /**
